@@ -5,7 +5,7 @@
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/psychobunny/nodebb-plugin-recent-cards"
+    "url": "https://github.com/soliury/nodebb-plugin-vite-stats"
   },
   "keywords": [
     "nodebb",
@@ -20,7 +20,7 @@
   },
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/psychobunny/nodebb-plugin-recent-cards/issues"
+    "url": "https://github.com/soliury/nodebb-plugin-vite-stats/issues"
   },
   "readmeFilename": "README.md",
   "nbbpm": {

@@ -2,7 +2,7 @@
 	"id": "nodebb-plugin-vite-stats",
 	"name": "Vite node stats for NodeBB's Persona Theme",
 	"description": "Vite node stats",
-	"url": "https://github.com/NodeBB/nodebb-plugin-vite-stats",
+	"url": "https://github.com/soliury/nodebb-plugin-vite-stats",
 	"library": "./library.js",
 	"hooks": [
 		{
