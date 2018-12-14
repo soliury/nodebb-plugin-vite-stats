@@ -2,5 +2,5 @@
   "sbp.total": "超级节点个数",
   "node.total": "全节点的个数",
   "fullnode.total.reward": "全节点累计奖池",
-  "vote.total": "累积投票奖励"
+  "vote.total": "官方节点累积投票奖励"
 }

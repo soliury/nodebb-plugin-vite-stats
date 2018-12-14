@@ -15,7 +15,9 @@
             [[vite:node.total]]
         </div>
         <div class="vite-stats-value">
-            {nodesNum}
+            <a href="https://forum.vite.net/full-node" target="_blank">
+                {nodesNum}
+            </a>
         </div>
     </div>
     <div class="vite-stats-item">
