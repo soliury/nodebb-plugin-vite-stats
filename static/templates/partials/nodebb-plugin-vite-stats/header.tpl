@@ -6,7 +6,9 @@
             [[vite:sbp.total]]
         </div>
         <div class="vite-stats-value">
-            {superNum}
+          <a href="https://explorer.vite.net/SBPList" target="_blank">
+               {superNum}
+          </a>
         </div>
     </div>
     <div class="vite-stats-item">
@@ -26,7 +28,7 @@
             [[vite:fullnode.total.reward]]
         </div>
         <div class="vite-stats-value">
-            {totalReward}
+            {totalReward} vite
         </div>
     </div>
     <div class="vite-stats-item">
@@ -35,7 +37,7 @@
             [[vite:vote.total]]
         </div>
         <div class="vite-stats-value">
-            {userTotalReward}
+            {userTotalReward} vite
         </div>
     </div>
 </div>
