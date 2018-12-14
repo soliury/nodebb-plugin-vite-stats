@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-vite-stats",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "description": "Add lavender-style cards of recent topics to Persona's category homepage",
   "main": "library.js",
   "repository": {
