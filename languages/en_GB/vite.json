@@ -1,6 +1,6 @@
 {
-  "sbp.total": "SBPs in total",
-  "node.total": "Full nodes in total",
-  "fullnode.total.reward": "Full node rewards pool",
-  "vote.total": "Voting rewards"
+  "sbp.total": "SBPs in Total",
+  "node.total": "Full Nodes in Total",
+  "fullnode.total.reward": "Full Node Rewards",
+  "vote.total": "Voting Rewards"
 }
