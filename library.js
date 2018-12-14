@@ -2,6 +2,8 @@
 
 var nconf = require.main.require('nconf');
 var async = require.main.require('async');
+var cache = require('memory-cache');
+var request = require('request');
 var validator = require.main.require('validator');
 var topics = require.main.require('./src/topics');
 var settings = require.main.require('./src/settings');
@@ -12,16 +14,13 @@ var defaultSettings = { title: 'Recent Topics', opacity: '1.0', textShadow: 'non
 var plugin = module.exports;
 var app;
 
+var FULL_NODE_KEY = 'vite-full-node-stats';
+var STATS_HEADER_KEY = 'vite-stats-header'
+var DATA_CACHE_TIME = 1000;
+
 plugin.init = function(params, callback) {
 	app = params.router;
 	var middleware = params.middleware;
-
-	app.get('/admin/plugins/recentcards', middleware.admin.buildHeader, renderAdmin);
-	app.get('/api/admin/plugins/recentcards', renderAdmin);
-
-	app.get('/plugins/nodebb-plugin-recent-cards/render', renderExternal);
-	app.get('/plugins/nodebb-plugin-recent-cards/render/style.css', renderExternalStyle);
-	app.get('/admin/plugins/nodebb-plugin-recent-cards/tests/external', testRenderExternal);
 
 	plugin.settings = new settings('recentcards', '1.0.0', defaultSettings);
 
@@ -43,169 +42,108 @@ plugin.addAdminNavigation = function(header, callback) {
 };
 
 plugin.defineWidgets = function(widgets, callback) {
-	var widget = {
-		widget: "recentCards",
-		name: "Recent Cards",
-		description: "Recent topics carousel",
-	};
-	app.render('admin/plugins/nodebb-plugin-recent-cards/widget', {}, function (err, html) {
-		if (err) {
-			return callback(err);
-		}
-		widget.content = html;
-		widgets.push(widget);
-		callback(null, widgets);
-	});
+    callback(null, widgets.concat([
+        {
+            widget: "viteHeader",
+            name: "Vite Stats Header",
+            description: "Show the Vite Stats in header",
+        },
+        {
+            widget: "viteNodes",
+            name: "Vite Full Nodes",
+            description: "Show the Vite Full Nodes List in custom page",
+        }
+	]));
 };
 
-plugin.renderWidget = function(widget, callback) {
-	var data = {
-		templateData: {
-			config: {
-				relative_path: nconf.get('relative_path'),
-			},
-		},
-		req: {
-			uid: widget.uid,
-		},
-		cid: widget.data.cid || 0,
-	};
+plugin.renderHeaderWidget = function(widget, callback) {
+	var templateData = {
+        config: {
+            relative_path: nconf.get('relative_path'),
+        },
+		size: 0,
+		list: []
+    };
 
-	plugin.getCategories(data, function(err, data) {
-		if (err) {
-			return callback(err);
-		}
+	var viteStats = cache.get(STATS_HEADER_KEY)
 
-		app.render('partials/nodebb-plugin-recent-cards/header', data.templateData, function (err, html) {
-			if (err) {
-				return callback(err);
+	if (!viteStats) {
+        request('https://stats.vite.net/api/forbbs', function (err, response, body) {
+        	try {
+                if (!body) {
+                    body = {data: {}}
+                } else {
+                    body = JSON.parse(body)
+                }
 			}
-			widget.html = html;
-			callback(null, widget);
-		});
-	});
-}
-
-function renderExternal(req, res, next) {
-	plugin.getCategories({
-		templateData: {}
-	}, function(err, data) {
-		if (err) {
-			return next(err);
-		}
-
-		data.templateData.relative_url = data.relative_url;
-		data.templateData.config = {
-			relative_path: nconf.get('url')
-		};
-
-		res.render('partials/nodebb-plugin-recent-cards/header', data.templateData);
-	});
-}
-
-function renderExternalStyle(req, res, next) {
-	res.render('partials/nodebb-plugin-recent-cards/external/style', {
-		forumURL: nconf.get('url')
-	});
-}
-
-function testRenderExternal(req, res, next) {
-	res.render('admin/plugins/nodebb-plugin-recent-cards/tests/external', {
-		forumURL: nconf.get('url')
-	});
-}
-
-plugin.getCategories = function(data, callback) {
-	var uid = data.req ? data.req.uid : 0;
-	var filterCid = data.cid;
-
-	function renderCards(err, topics) {
-		if (err) {
-			return callback(err);
-		}
-
-		var i = 0;
-		var cids = [];
-		var finalTopics = [];
-
-		if (!plugin.settings.get('enableCarousel')) {
-			while (finalTopics.length < 4 && i < topics.topics.length) {
-				var cid = parseInt(topics.topics[i].cid, 10);
-
-				if (filterCid || !cids.includes(cid)) {
-					cids.push(cid);
-					finalTopics.push(topics.topics[i]);
-				}
-
-				i++;
+			catch (e) {
+        		body = {data: {}}
+            }
+            templateData = Object.assign({}, templateData, body.data);
+            if (templateData.totalReward) {
+            	templateData.totalReward = parseInt(templateData.totalReward)
 			}
-		} else {
-			finalTopics = topics.topics;
-		}
-
-		data.templateData.topics = finalTopics;
-		data.templateData.recentCards = {
-			title: plugin.settings.get('title'),
-			opacity: plugin.settings.get('opacity'),
-			textShadow: plugin.settings.get('shadow'),
-			enableCarousel: plugin.settings.get('enableCarousel'),
-			enableCarouselPagination: plugin.settings.get('enableCarouselPagination')
-		};
-
-		callback(null, data);
-	}
-
-	if (plugin.settings.get('groupName')) {
-		groups.getLatestMemberPosts(plugin.settings.get('groupName'), 19, uid, function(err, posts) {
-			if (err) {
-				return callback(err);
+			if (templateData.userTotalReward) {
+            	templateData.userTotalReward = parseInt(templateData.userTotalReward)
 			}
-			var topics = {topics: []};
-			for (var p = 0, pp = posts.length; p < pp; p++) {
-				var topic = posts[p].topic;
-				topic.category = posts[p].category;
-				topic.timestampISO = posts[p].timestampISO;
-				topics.topics.push(topic);
-			}
-
-			renderCards(null, topics);
-		});
-	} else if (plugin.settings.get('popularTerm')) {
-		topics.getSortedTopics({
-			uid: uid,
-			start: 0,
-			stop: 19,
-			term: plugin.settings.get('popularTerm'),
-			sort: 'posts',
-			cids: filterCid,
-		}, renderCards);
+            cache.put(STATS_HEADER_KEY, templateData, DATA_CACHE_TIME);
+            renderWidget('partials/nodebb-plugin-vite-stats/header', widget, templateData, callback)
+        })
 	} else {
-		if (filterCid) {
-			topics.getTopicsFromSet('cid:' + filterCid + ':tids:lastposttime', uid, 0, 19, renderCards);
-		} else {
-			topics.getTopicsFromSet('topics:recent', uid, 0, 19, renderCards);
-		}
+        renderWidget('partials/nodebb-plugin-vite-stats/header', widget, viteStats, callback)
 	}
-};
+}
 
-function renderAdmin(req, res, next) {
-	var list = [];
+plugin.renderNodesWidget = function (widget, callback) {
+    var templateData = {
+        config: {
+            relative_path: nconf.get('relative_path'),
+        },
+        size: 0,
+        list: []
+    };
 
-	groups.getGroups('groups:createtime', 0, -1, function(err, groupsData) {
-		if (err) {
-			return next(err);
-		}
-		groupsData.forEach(function(group) {
-			if (groups.isPrivilegeGroup(group)) {
-				return;
-			}
+    var viteStats = cache.get(FULL_NODE_KEY)
 
-			list.push({
-				name: group,
-				value: validator.escape(String(group)),
+    if (!viteStats) {
+        request('https://stats.vite.net/api/getPeers', function (err, response, body) {
+            try {
+                if (!body) {
+                    body = {list:[]}
+                } else {
+                    body = JSON.parse(body)
+                }
+            }
+            catch (e) {
+                body = {list:[]}
+            }
+            templateData.list = body.list.map((item, index) => {
+            	var nodeDetail = item.nodeDetail || {}
+            	var osInfo = nodeDetail.osInfo || {}
+            	var ipInfo = nodeDetail.ipInfo || {}
+            	return Object.assign({}, item, item.nodeDetail || {}, {
+            		number: index + 1,
+					status: nodeDetail.isok ? 'Active': 'Not Active',
+					os: osInfo.os + '-' + osInfo.platform + ' ' + osInfo.platformVersion,
+					location: ipInfo.country_name + ' ' + ipInfo.region_name
+				})
 			});
-		});
+            cache.put(FULL_NODE_KEY, templateData, DATA_CACHE_TIME);
 
-		res.render('admin/plugins/recentcards', { groups: list });
-	});
+            renderWidget('partials/nodebb-plugin-vite-stats/node', widget, templateData, callback)
+        })
+    } else {
+        renderWidget('partials/nodebb-plugin-vite-stats/node', widget, viteStats, callback)
+    }
+}
+
+
+function renderWidget(template, widget, data, callback) {
+    app.render(template, data, function (err, html) {
+        if (err) {
+            return callback(err);
+        }
+        widget.html = html;
+        callback(null, widget);
+    });
 }

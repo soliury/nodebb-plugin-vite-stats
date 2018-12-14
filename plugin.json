@@ -1,24 +1,21 @@
 {
-	"id": "nodebb-plugin-recent-cards",
-	"name": "Recent Cards plugin for NodeBB's Persona Theme",
-	"description": "Add lavender-style cards of recent topics to Persona's category homepage",
-	"url": "https://github.com/NodeBB/nodebb-plugin-recent-cards",
+	"id": "nodebb-plugin-vite-stats",
+	"name": "Vite node stats for NodeBB's Persona Theme",
+	"description": "Vite node stats",
+	"url": "https://github.com/NodeBB/nodebb-plugin-vite-stats",
 	"library": "./library.js",
 	"hooks": [
 		{
 			"hook": "static:app.load", "method": "init"
 		},
 		{
-			"hook": "filter:admin.header.build", "method": "addAdminNavigation"
-		},
-		{
-			"hook": "filter:categories.build", "method": "getCategories"
-		},
-		{
 			"hook": "filter:widgets.getWidgets", "method": "defineWidgets"
 		},
 		{
-			"hook": "filter:widget.render:recentCards", "method": "renderWidget"
+			"hook": "filter:widget.render:viteHeader", "method": "renderHeaderWidget"
+		},
+		{
+			"hook": "filter:widget.render:viteNodes", "method": "renderNodesWidget"
 		}
 	],
 	"staticDirs": {
@@ -27,12 +24,7 @@
 	"less": [
 		"static/style.less"
 	],
-	"css": [
-		"static/bxslider/jquery.bxslider.css"
-	],
-	"scripts": [
-		"static/bxslider/jquery.bxslider.min.js",
-		"static/lib/main.js"
-	],
-	"templates": "static/templates"
+	"templates": "static/templates",
+	"languages": "languages",
+	"defaultLang": "en_US"
 }

@@ -1,5 +1,5 @@
 {
-  "name": "nodebb-plugin-recent-cards",
+  "name": "nodebb-plugin-vite-stats",
   "version": "1.0.7",
   "description": "Add lavender-style cards of recent topics to Persona's category homepage",
   "main": "library.js",
@@ -15,8 +15,8 @@
     "persona"
   ],
   "author": {
-    "name": "psychobunny",
-    "email": "psycho.bunny@hotmail.com"
+    "name": "vitelabs",
+    "email": "info@vite.org"
   },
   "license": "BSD-2-Clause",
   "bugs": {
@@ -25,5 +25,9 @@
   "readmeFilename": "README.md",
   "nbbpm": {
     "compatibility": "^1.10.1"
+  },
+  "dependencies": {
+    "memory-cache": "^0.2.0",
+    "request": "^2.88.0"
   }
 }
