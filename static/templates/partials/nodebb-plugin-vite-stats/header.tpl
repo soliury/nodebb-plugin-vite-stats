@@ -41,4 +41,4 @@
         </div>
     </div>
 </div>
-<!-- ENDIF list.length -->
+<!-- ENDIF totalReward -->

@@ -17,6 +17,7 @@ var app;
 var FULL_NODE_KEY = 'vite-full-node-stats';
 var STATS_HEADER_KEY = 'vite-stats-header'
 var DATA_CACHE_TIME = 1000;
+var TIMEOUT = 1000 * 60;
 
 plugin.init = function(params, callback) {
 	app = params.router;
@@ -62,13 +63,18 @@ plugin.renderHeaderWidget = function(widget, callback) {
             relative_path: nconf.get('relative_path'),
         },
 		size: 0,
-		list: []
+        totalReward: null
     };
 
 	var viteStats = cache.get(STATS_HEADER_KEY)
 
 	if (!viteStats) {
-        request('https://stats.vite.net/api/forbbs', function (err, response, body) {
+        request('https://stats.vite.net/api/forbbs', {timeout: TIMEOUT}, function (err, response, body) {
+            if (err) {
+                renderWidget('partials/nodebb-plugin-vite-stats/header', widget, templateData, callback)
+                return;
+            }
+
         	try {
                 if (!body) {
                     body = {data: {}}
@@ -106,7 +112,7 @@ plugin.renderNodesWidget = function (widget, callback) {
     var viteStats = cache.get(FULL_NODE_KEY)
 
     if (!viteStats) {
-        request('https://stats.vite.net/api/getPeers', function (err, response, body) {
+        request('https://stats.vite.net/api/getPeers', {timeout: TIMEOUT}, function (err, response, body) {
             try {
                 if (!body) {
                     body = {list:[]}
