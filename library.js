@@ -16,8 +16,8 @@ var app;
 
 var FULL_NODE_KEY = 'vite-full-node-stats';
 var STATS_HEADER_KEY = 'vite-stats-header'
-var DATA_CACHE_TIME = 1000;
-var TIMEOUT = 1000 * 60;
+var DATA_CACHE_TIME = 1000 * 60;
+var TIMEOUT = 1000;
 
 plugin.init = function(params, callback) {
 	app = params.router;
